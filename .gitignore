@@ -120,7 +120,7 @@ ipython_config.py
 
 ### macOS ###
 # General
-.DS_Store
+**/.DS_Store
 .AppleDouble
 .LSOverride
 
@@ -156,6 +156,7 @@ Temporary Items
 __pycache__/
 *.py[cod]
 *$py.class
+!packages/electrical_grid_model/assets/**
 
 # C extensions
 *.so
