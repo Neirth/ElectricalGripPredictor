@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "packages/electrical_grid_cli",
+    "packages/electrical_grid_core",
+    "packages/electrical_grid_model",
+]

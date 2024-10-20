@@ -1,0 +1,12 @@
+# Generate me a cargo manifest for a binary crate
+[package]
+name = "electrical_grid_cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "electrical_grid"
+path = "src/main.rs"
+
+[dependencies]
+electrical_grid_core = { path = "../electrical_grid_core" }
