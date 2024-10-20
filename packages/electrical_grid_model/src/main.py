@@ -11,7 +11,7 @@ import os
 import torch
 
 BATCH_SIZE=64
-DATA_FILE = os.path.join(os.getcwd(),  '../assets/LD2011_2014_NEW.csv')
+DATA_FILE = os.path.join(os.getcwd(),  './assets/LD2011_2014.csv')
 
 def main():
     # Avisamos de la intención de este modulo
@@ -31,7 +31,7 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)  # No es necesario barajar en validación
 
     # Preparamos la captura de datos en el tensorboard
-    writer = SummaryWriter(log_dir="../runs")
+    writer = SummaryWriter(log_dir="./runs")
 
     # Train and Test Model
     model = train_model(train_loader, device, writer)
@@ -42,7 +42,7 @@ def main():
         model,
         device,
         input_size = (1, 19, 3),
-        output_path = '../build/grid_predictor.onnx'
+        output_path = './build/grid_predictor.onnx'
     )
 
     # Cerramos el reporte de entrenamiento
