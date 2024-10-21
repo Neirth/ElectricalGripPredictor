@@ -345,6 +345,7 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 name = "electrical_grid_cli"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "electrical_grid_core",
 ]
 
@@ -356,6 +357,7 @@ dependencies = [
  "candle-onnx",
  "chrono",
  "prost 0.13.3",
+ "quick-xml",
  "reqwest",
  "serde",
  "serde_json",
@@ -1307,6 +1309,16 @@ dependencies = [
  "libm",
  "num-complex",
  "reborrow",
+]
+
+[[package]]
+name = "quick-xml"
+version = "0.36.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7649a7b4df05aed9ea7ec6f628c67c9953a43869b8bc50929569b2999d443fe"
+dependencies = [
+ "memchr",
+ "serde",
 ]
 
 [[package]]

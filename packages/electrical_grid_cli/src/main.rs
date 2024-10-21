@@ -7,7 +7,7 @@ use electrical_grid_core::{
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Get the authentication token from environment variables or set a default value
-    let auth_token = env::var("ELECTRICITYMAP_API_TOKEN").unwrap_or_else(|_| "UQfwh8hp8TqvO".to_string());
+    let auth_token = env::var("POWER_GRID_API_TOKEN").unwrap_or_else(|_| "dummy_token".to_string());
 
     // Create an instance of the DataCollectorService
     let data_service = DataCollectorService::new(auth_token.clone());
@@ -21,8 +21,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         match command.as_str() {
             "predict_power_grid_load" => {
+                let end = chrono::Utc::now();
+                let start = end - chrono::Duration::days(1);
+
                 // Fetch power data
-                match data_service.get_power_data() {
+                match data_service.get_power_data(&*start.to_rfc3339(), &*end.to_rfc3339()) {
                     Ok(data) => {
                         // Print the fetched power data
                         for (timestamp, value) in &data {

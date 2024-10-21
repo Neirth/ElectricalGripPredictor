@@ -10,3 +10,4 @@ path = "src/main.rs"
 
 [dependencies]
 electrical_grid_core = { path = "../electrical_grid_core" }
+chrono = "0.4.38"
