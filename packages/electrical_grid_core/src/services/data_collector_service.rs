@@ -1,10 +1,6 @@
 use reqwest::blocking::Client;
 use serde::Deserialize;
-
-#[derive(Deserialize)]
-struct PowerData {
-    powerConsumptionTotal: i64,
-}
+use std::error::Error;
 
 #[derive(Deserialize)]
 struct ApiResponse {
@@ -25,47 +21,36 @@ impl DataCollectorService {
         Self { client, auth_token }
     }
 
-    /// Retrieves the last 19 elements of power consumption in kWh.
-    pub fn get_power_data(&self) -> Result<Vec<(i64, f32)>, String> {
-        // Coordinates of Austria (you can adjust them if necessary)
+    /// Retrieves the power data for a specified range.
+    pub fn get_power_data(&self, start: &str, end: &str) -> Result<Vec<(i64, f32)>, Box<dyn Error>> {
+        // Coordinates of Austria
         let lat = 47.5162;
         let lon = 14.5501;
 
         let url = format!(
-            "https://api.electricitymap.org/v3/power-breakdown/latest?lat={}&lon={}",
-            lat, lon
+            "https://api.electricitymap.org/v3/power-breakdown/past-range?lat={}&lon={}&start={}&end={}",
+            lat, lon, start, end
         );
 
         // Make the GET request
         let response = self.client.get(&url)
             .header("auth-token", &self.auth_token)
-            .send();
+            .send()?;
 
         // Check the result
-        match response {
-            Ok(resp) => {
-                if resp.status().is_success() {
-                    let api_response: ApiResponse = resp.json().map_err(|e| e.to_string())?;
-                    let consumption_total_kw = api_response.powerConsumptionTotal; // in MW/h
+        if response.status().is_success() {
+            let api_response: Vec<ApiResponse> = response.json()?;
 
-                    // Convert to kWh
-                    let consumption_total_kwh = consumption_total_kw * 1000; // in kW/h
+            // Extract the total power consumption
+            let data: Vec<(i64, f32)> = api_response.into_iter().map(|entry| {
+                let timestamp = entry.datetime.parse::<i64>().unwrap() / 1000; // Convert ms to s
+                let consumption_total_kwh = entry.powerConsumptionTotal as f32; // already in kWh
+                (timestamp, consumption_total_kwh)
+            }).collect();
 
-                    // Here we return the last 19 elements, simulating the logic for the example
-                    let data: Vec<(i64, f32)> = (0..19)
-                        .map(|i| {
-                            let timestamp = (api_response.datetime.parse::<i64>().unwrap() + i * 900) as i64; // 15 min = 900 s
-                            let value = (consumption_total_kwh as f32) * 4.0; // Multiplied by 4 to get the value in kWh as a expect the model
-                            (timestamp, value)
-                        })
-                        .collect();
-
-                    Ok(data)
-                } else {
-                    Err(format!("Error fetching data: {}", resp.status()))
-                }
-            }
-            Err(e) => Err(format!("Request failed: {}", e)),
+            Ok(data)
+        } else {
+            Err(format!("Error fetching data: {}", response.status()).into())
         }
     }
 }
