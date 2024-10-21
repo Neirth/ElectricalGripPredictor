@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
-use candle_core::{Device};
+use candle_core::{Device, NdArray};
 use candle_onnx::{onnx::ModelProto, read_file, simple_eval };
 use candle_onnx::eval::Value;
 use crate::utils::{generate_sin_components, select_best_device_inference};
@@ -41,24 +41,23 @@ impl PredictLoadService {
     pub fn predict_load(&self, input_data: Vec<(i64, f32)>) -> Result<f32, String> {
         // Check if the vector length is correct
         if input_data.len() != 19 {
-            return Err("Input data must have 19 elements".to_string());
+            return Err("BUG: Input data must have 19 elements".to_string());
         }
 
         // Generate the sine components for the day and minutes
-        let window_values = input_data.iter().map(
+        let window_values: Vec<Vec<f32>> = input_data.iter().map(
             |(timestamp, load)| {
-                // Generate the sine components for the day and the minutes
                 let (day_sin, minute_sin) = generate_sin_components(*timestamp)
                     .map_err(|e| format!("BUG: Error generating sin components -> {}", e))?;
 
-                Ok((day_sin, minute_sin, *load))
+                Ok(vec![day_sin, minute_sin, *load])
             }
-        ).collect::<Result<Vec<(f32, f32, f32)>, String>>()?;
-        // Convert `window_values` into a format that is compatible with `Value::new`
-        // For instance, if `candle_core` has a Tensor type
-        let tensor_data: Vec<f32> = window_values.iter().flat_map(|&(day_sin, minute_sin, load)| {
-            vec![day_sin, minute_sin, load]
-        }).collect();
+        ).collect::<Result<Vec<Vec<f32>>, String>>()?;
+
+        println!("--> Window values shape: {:?}", window_values.shape().unwrap());
+
+        // Transpose the window_values into a 3D shape of [1, 19, 3]
+        let reshaped_window_values = vec![window_values]; // This creates a 1x19x3 shape
 
         // Obtaining the graph from the model
         let graph = self.model.graph.as_ref().unwrap();
@@ -67,7 +66,7 @@ impl PredictLoadService {
         let mut inputs = HashMap::new();
 
         // Create the tensor and insert it into inputs
-        inputs.insert(graph.input[0].name.to_string(), Value::new(tensor_data, &self.device).unwrap());
+        inputs.insert(graph.input[0].name.to_string(), Value::new(reshaped_window_values, &Device::Cpu).unwrap());
 
         // Evaluate the model
         match simple_eval(&self.model, inputs) {
