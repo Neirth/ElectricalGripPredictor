@@ -21,21 +21,24 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         match command.as_str() {
             "predict_power_grid_load" => {
-                let end = chrono::Utc::now();
+                // Set end and start hour and minute to 0:00 of the current day
+                let end = chrono::Utc::now().date_naive().and_hms_opt(0, 0, 0).unwrap();
                 let start = end - chrono::Duration::days(1);
 
                 // Fetch power data
-                match data_service.get_power_data(&*start.to_rfc3339(), &*end.to_rfc3339()) {
+                match data_service.get_power_data(
+                    start.and_utc(), end.and_utc()
+                ) {
                     Ok(data) => {
                         // Print the fetched power data
                         for (timestamp, value) in &data {
-                            println!("Timestamp: {}, Power Consumption: {} kWh", timestamp, value);
+                            println!("--> Timestamp: {}, Power Consumption: {} kWh", timestamp, value);
                         }
 
                         // Pass the fetched data to the inference service
                         match inference_service.predict_load(data) {
-                            Ok(results) => println!("Predicted power grid load for the next 15 minutes: {} kWh", results / 4.0),
-                            Err(e) => eprintln!("Error running inference: {}", e),
+                            Ok(results) => println!("[*] Predicted power grid load for the next 15 minutes: {} kWh", results / 4.0),
+                            Err(e) => eprintln!("[!] Error running inference -> {}", e),
                         }
                     },
                     Err(e) => eprintln!("Error fetching power data: {}", e),
@@ -48,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     } else {
-        eprintln!("No command provided. Please specify a command.");
+        eprintln!("[!] No command provided. Please specify a command.");
         eprintln!("Usage: {} <command>", env::args().nth(0).unwrap());
         eprintln!("Available commands: predict_power_grid_load");
     }
