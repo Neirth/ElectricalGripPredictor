@@ -1,10 +1,10 @@
 use candle_core::Device;
-use chrono::{Datelike, NaiveDateTime, Timelike};
+use chrono::{DateTime, Datelike, Timelike};
 use candle_core::utils::{cuda_is_available, metal_is_available};
 
 /// Genera los componentes sinusoidales del día y los minutos a partir de un timestamp.
 pub(crate) fn generate_sin_components(timestamp: i64) -> Result<(f32, f32), String> {
-    let naive_datetime = NaiveDateTime::from_timestamp_opt(timestamp, 0)
+    let naive_datetime = DateTime::from_timestamp(timestamp, 0)
         .ok_or("Error al convertir el timestamp")?;
 
     let day_of_year = naive_datetime.ordinal();
