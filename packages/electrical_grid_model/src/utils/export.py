@@ -5,46 +5,46 @@ import os
 
 def export_model(model, device, input_size, output_path):
     """
-    Exporta un modelo de PyTorch a formato ONNX y simplifica el modelo ONNX.
+    Exports a PyTorch model to ONNX format and simplifies the ONNX model.
 
-    :param model: Modelo de PyTorch que se quiere exportar.
-    :param device: Dispositivo de PyTorch que se está usando para el entrenamiento
-    :param input_size: Tamaño de entrada del modelo (ejemplo: (batch_size, channels, height, width)).
-    :param output_path: Ruta donde se guardará el modelo ONNX.
+    :param model: PyTorch model to be exported.
+    :param device: PyTorch device being used for training.
+    :param input_size: Input size of the model (e.g., (batch_size, channels, height, width)).
+    :param output_path: Path where the ONNX model will be saved.
     """
-    # Establecer el modelo en modo de evaluación
+    # Set the model to evaluation mode
     model.eval()
 
-    # Crear un tensor de entrada ficticio
+    # Create a dummy input tensor
     dummy_input = torch.randn(*input_size).to(device)
 
-    # Verificar y crear el directorio de exportación si no existe
+    # Check and create the export directory if it doesn't exist
     output_dir = os.path.dirname(output_path)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-        print(f'[*] Directorio creado: {output_dir}')
+        print(f'[*] Directory created: {output_dir}')
 
-    # Exportar el modelo a formato ONNX
+    # Export the model to ONNX format
     torch.onnx.export(
         model, dummy_input, output_path,
         export_params=True,
         opset_version=11,
-        do_constant_folding=True,  # Optimización de constantes
+        do_constant_folding=True,  # Constant optimization
         input_names=['input'],
         output_names=['output'],
         dynamic_axes={
-            'input': {0: 'batch_size'},  # Eje dinámico para el tamaño del lote
+            'input': {0: 'batch_size'},  # Dynamic axis for batch size
             'output': {0: 'batch_size'}
         }
     )
 
-    # Cargar el modelo ONNX para simplificar
+    # Load the ONNX model for simplification
     model_onnx = onnx.load(output_path)
 
-    # Simplificar el modelo ONNX
+    # Simplify the ONNX model
     model_simplified, check = simplify(model_onnx)
 
-    # Guardar el modelo simplificado
+    # Save the simplified model
     onnx.save(model_simplified, output_path)
 
-    print(f'[*] Modelo exportado y simplificado a: {output_path}')
+    print(f'[*] Model exported and simplified to: {output_path}')

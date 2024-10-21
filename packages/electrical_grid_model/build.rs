@@ -1,5 +1,5 @@
 use std::process::Command;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::fs;
 
 fn main() {
@@ -9,8 +9,6 @@ fn main() {
     let script_path = project_root.join("src/main.py");
     // Path to the build file in ./build
     let build_file_path = project_root.join("build/grid_predictor.onnx");
-    // Path to packages/electrical_grid_model
-    let electrical_grid_model_path = project_root.join("packages/electrical_grid_model");
 
     // Check if the Python script exists
     if !script_path.exists() {

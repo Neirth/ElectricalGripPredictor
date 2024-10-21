@@ -3,37 +3,37 @@ from sklearn.metrics import r2_score
 
 def evaluate_model(model, val_loader, device, writer, epoch=200):
     """
-    Evalúa la precisión del modelo en un conjunto de datos con ventanas deslizantes.
+    Evaluates the accuracy of the model on a dataset with sliding windows.
 
-    :param model: Modelo de PyTorch a evaluar.
-    :param val_loader: DataLoader que contiene los datos para la evaluación.
-    :param device: Dispositivo donde se ejecuta el modelo (CPU o GPU).
-    :param writer: Escritor de TensorBoard para registrar la precisión.
-    :param epoch: Número de la época actual, usado para el registro en TensorBoard.
+    :param model: PyTorch model to evaluate.
+    :param val_loader: DataLoader containing the data for evaluation.
+    :param device: Device where the model runs (CPU or GPU).
+    :param writer: TensorBoard writer to log the accuracy.
+    :param epoch: Current epoch number, used for logging in TensorBoard.
     """
-    model.eval()  # Poner el modelo en modo de evaluación
+    model.eval()  # Set the model to evaluation mode
     y_true = []
     y_pred = []
 
-    with torch.no_grad():  # No calcular gradientes para la evaluación
+    with torch.no_grad():  # Do not compute gradients for evaluation
         for i, element in enumerate(val_loader):
-            # Desempaquetamos los datos
+            # Unpack the data
             x = element['window_stack']
             y = element['next_value']
 
-            # Hacer predicciones
-            outputs = model(x)  # Asegúrate de que tu modelo acepte timestamps
+            # Make predictions
+            outputs = model(x)  # Make sure your model accepts timestamps
 
-            # Supongamos que el modelo devuelve un valor continuo
-            predicted = outputs.squeeze()  # Eliminar dimensiones innecesarias
+            # Assume the model returns a continuous value
+            predicted = outputs.squeeze()  # Remove unnecessary dimensions
 
-            # Almacenar las predicciones y los valores verdaderos
-            y_true.extend(y.cpu().numpy())  # Asegúrate de que sean tensores de CPU
+            # Store the predictions and true values
+            y_true.extend(y.cpu().numpy())  # Ensure these are CPU tensors
             y_pred.extend(predicted.cpu().numpy())
 
-    # Calcular R^2
-    r2 = r2_score(y_true, y_pred)  # Usar la función r2_score de sklearn
-    print(f'[*] R^2 del modelo en el conjunto de evaluación: {r2:.4f}')
+    # Calculate R^2
+    r2 = r2_score(y_true, y_pred)  # Use the r2_score function from sklearn
+    print(f'[*] R^2 of the model on the evaluation set: {r2:.4f}')
 
-    # Registrar R^2 en TensorBoard
+    # Log R^2 in TensorBoard
     writer.add_scalar('R2', r2, epoch)
