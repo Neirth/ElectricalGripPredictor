@@ -76,11 +76,6 @@ impl DataCollectorService {
         )
     }
 
-    /// Converts MAW to kWh.
-    fn convert_maw_to_kwh(quantity_maw: f32) -> f32 {
-        quantity_maw * 1000.0
-    }
-
     /// Rounds up the current time to the nearest 15-minute interval.
     fn round_up_to_nearest_15_minutes(time: DateTime<Utc>) -> DateTime<Utc> {
         let minutes = time.minute();
@@ -111,7 +106,7 @@ impl DataCollectorService {
             .rev() // Reverse to get the last points first
             .take(19)
             .map(|point| {
-                let consumption_total_kwh = Self::convert_maw_to_kwh(point.quantity);
+                let consumption_total_kwh = point.quantity;
                 let timestamp = Self::calculate_timestamp_from_position(start_time, i).timestamp();
                 i += 1;
                 (timestamp, consumption_total_kwh)

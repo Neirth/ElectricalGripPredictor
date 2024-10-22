@@ -54,10 +54,9 @@ impl PredictLoadService {
             }
         ).collect::<Result<Vec<Vec<f32>>, String>>()?;
 
-        println!("--> Window values shape: {:?}", window_values.shape().unwrap());
-
         // Transpose the window_values into a 3D shape of [1, 19, 3]
         let reshaped_window_values = vec![window_values]; // This creates a 1x19x3 shape
+        println!("--> Window values shape: {:?}", reshaped_window_values.shape().unwrap());
 
         // Obtaining the graph from the model
         let graph = self.model.graph.as_ref().unwrap();
