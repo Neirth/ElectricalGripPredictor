@@ -20,8 +20,8 @@ class ElectricalGridDataset(Dataset):
 
         # We convert the lists to numpy arrays with the correct shape
         self.window_values = np.array(self.window_values, dtype=np.float32)  # Each row can be a sequence
-        self.day_sin = np.array(self.day_sin, dtype=np.int64)
-        self.minute_sin = np.array(self.minute_sin, dtype=np.int64)
+        self.day_sin = np.array(self.day_sin, dtype=np.float32)
+        self.minute_sin = np.array(self.minute_sin, dtype=np.float32)
         self.next_values = np.array(self.next_values, dtype=np.float32)
 
         # Here we create a new structure that combines the three components for each sliding window

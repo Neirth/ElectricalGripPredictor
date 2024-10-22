@@ -19,6 +19,7 @@ def main():
 
     # We try to use the best device as possible
     device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+    torch.set_default_dtype(torch.float32)
 
     print(f'[*] The device to be used will be "{device}"')
 

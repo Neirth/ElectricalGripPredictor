@@ -76,10 +76,13 @@ def electrical_grid_preprocessor(file: str) -> DataFrame:
     df.iloc[:, 1:] = df.iloc[:, 1:].apply(to_numeric, errors='coerce')
 
     # Calculate the median of each row (except the first column) and store it in a new column called global_load
-    df['GLOBAL_LOAD_TOTAL'] = df.iloc[:, 1:].sum(axis=1)
+    df['GLOBAL_LOAD_TOTAL'] = df.iloc[:, 1:].sum(axis=1).div(1000)
 
     # Make sure there are no NaN values before converting to tensor
     df = df.dropna()
+
+    print("[*] Tail of the preprocessed dataset:")
+    print(df.tail())
 
     df = df[['TIMESTAMP', 'GLOBAL_LOAD_TOTAL']].copy()
 
