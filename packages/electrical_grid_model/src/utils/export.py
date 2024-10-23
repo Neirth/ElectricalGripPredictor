@@ -1,6 +1,5 @@
 import torch
 import onnx
-from onnxsim import simplify
 import os
 
 def export_model(model, device, input_size, output_path):

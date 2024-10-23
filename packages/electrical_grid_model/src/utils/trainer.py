@@ -24,7 +24,7 @@ def r2_score_torch(y_true, y_pred):
     r2 = 1 - (ss_res / ss_tot)
     return r2.item()  # Return as a scalar value
 
-def train_model(train_loader, device, writer, epochs=300, learning_rate=0.001):
+def train_model(train_loader, device, writer, epochs=150, learning_rate=0.001):
     """
     Trains the next value prediction model in the electrical grid using sliding windows.
 

@@ -1,21 +1,26 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
-INPUT_SIZE = 3  # Assuming you have one input: values
-HIDDEN_SIZE = 64
+INPUT_SIZE = 3  # Number of features in the input
+HIDDEN_SIZE = 64  # Size of hidden units in the LSTM
 
 class GridLinearModel(nn.Module):
     def __init__(self):
         super(GridLinearModel, self).__init__()
-        # Set bidirectional to False
+        # LSTM with 4 layers
         self.lstm = nn.LSTM(INPUT_SIZE, HIDDEN_SIZE, 4, batch_first=True, bidirectional=False)
-        self.attention = nn.Linear(HIDDEN_SIZE, 1)  # attention now only over one direction
-        self.fc = nn.Linear(HIDDEN_SIZE, 1)  # fully-connected layer
+
+        # Using mean pooling to reduce the sequence
+        self.fc = nn.Linear(HIDDEN_SIZE, 1)  # Final fully-connected layer
 
     def forward(self, x):
         # x shape: (batch_size, seq_length, input_size)
-        lstm_out, (hn, cn) = self.lstm(x)  # lstm_out: (batch_size, seq_length, hidden_size)
-        attention_weights = torch.softmax(self.attention(lstm_out), dim=1)
-        context = torch.sum(attention_weights * lstm_out, dim=1)  # weighted sum over timesteps
-        output = self.fc(context)  # final prediction
+        lstm_out, _ = self.lstm(x)  # lstm_out: (batch_size, seq_length, hidden_size)
+
+        # Compute the mean across the sequence dimension
+        mean_out = torch.mean(lstm_out, dim=1)  # (batch_size, hidden_size)
+
+        # Pass the reduced context through the fully-connected layer
+        output = self.fc(mean_out)  # (batch_size, 1)
+
         return output

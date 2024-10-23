@@ -36,4 +36,4 @@ def evaluate_model(model, val_loader, device, writer, epoch=200):
     print(f'[*] R^2 of the model on the evaluation set: {r2:.4f}')
 
     # Log R^2 in TensorBoard
-    writer.add_scalar('R2', r2, epoch)
+    writer.add_scalar('R2/eval', r2, epoch)
