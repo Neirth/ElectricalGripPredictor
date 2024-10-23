@@ -9,11 +9,9 @@ path = "src/lib.rs"
 [dependencies]
 electrical_grid_model = { path = "../electrical_grid_model" }
 
-prost = "0.13.3"
-candle-core = { version = "0.7.2", features = [ "metal" ] }
-candle-onnx = "0.7.2"
 chrono = "0.4.38"
 serde = { version = "1.0.130", features = ["derive"] }
 serde_json = "1.0"
 reqwest = { version = "0.12.8", features = ["blocking", "json"] }
 quick-xml = { version = "0.36.2", features = ["serialize"] }
+tract-onnx = "0.21.7"
