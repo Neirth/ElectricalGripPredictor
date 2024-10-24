@@ -2,7 +2,7 @@ use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::error::Error;
 use std::str::FromStr;
-use chrono::{DateTime, Duration, SecondsFormat, Utc, Timelike};
+use chrono::{DateTime, Duration, SecondsFormat, Utc, Timelike, TimeZone, FixedOffset};
 use quick_xml::de::from_str;
 
 #[derive(Deserialize, Debug)]
@@ -79,41 +79,63 @@ impl DataCollectorService {
     /// Rounds up the current time to the nearest 15-minute interval.
     fn round_up_to_nearest_15_minutes(time: DateTime<Utc>) -> DateTime<Utc> {
         let minutes = time.minute();
-        let extra_minutes = if minutes % 15 == 0 { 0 } else { 15 - (minutes % 15) };
-        time + Duration::minutes(extra_minutes as i64)
+        let extra_minutes = (15 - (minutes % 15)) % 15;
+
+        if extra_minutes == 0 {
+            time
+        } else {
+            time + Duration::minutes(extra_minutes as i64)
+        }
     }
 
     /// Calculates the timestamp for a given position, with a 15-minute decrement.
-    fn calculate_timestamp_from_position(start_time: DateTime<Utc>, position: i32) -> DateTime<Utc> {
+    fn calculate_timestamp_from_position(start_time: DateTime<FixedOffset>, position: i32) -> DateTime<FixedOffset> {
         // Each position is 15 minutes before the last, so we decrement by position * 15 minutes
         start_time - Duration::minutes(15 * (19 - position) as i64)
     }
 
     /// Parses and processes the API response.
     fn parse_response(response_text: &str) -> Result<Vec<(i64, f32)>, Box<dyn Error>> {
+        // Get the market document from the response
         let market_doc: GLMarketDocument = from_str(response_text)?;
 
         // Start from the current time, rounded up to the nearest 15 minutes
-        let start_time = Self::round_up_to_nearest_15_minutes(Utc::now());
-        let mut i = 0;
+        let local_offset = FixedOffset::east_opt(1 * 3600).unwrap();
+        let start_time = Self::round_up_to_nearest_15_minutes(Utc::now()).with_timezone(&local_offset);
 
         // Extract and transform the data points
-        let data: Vec<(i64, f32)> = market_doc
+        let data_preprocessed: Vec<Point> = market_doc
             .time_series
             .period
             .points
             .into_iter()
-            .rev() // Reverse to get the last points first
+            .rev()
             .take(19)
-            .map(|point| {
-                let consumption_total_kwh = point.quantity;
-                let timestamp = Self::calculate_timestamp_from_position(start_time, i).timestamp();
-                i += 1;
-                (timestamp, consumption_total_kwh)
-            })
             .collect();
 
+        // Initialize the position counter
+        let mut i = 0;
+
+        // Reverse the data to have it in chronological order
+        let data = data_preprocessed.into_iter().rev().map(|point| {
+            let consumption_total_kwh = point.quantity;
+            let timestamp = Self::calculate_timestamp_from_position(start_time, i);
+            i += 1;
+
+            (timestamp.timestamp(), consumption_total_kwh)
+        }).collect();
+
         Ok(data)
+    }
+
+    /// Retrieves the power data for an entire year.
+    pub fn get_power_data_for_year(&self, year: i32) -> Result<Vec<(i64, f32)>, Box<dyn Error>> {
+        // Define the start and end dates for the entire year
+        let start_date = Utc.with_ymd_and_hms(year, 1, 1, 0, 0, 0).unwrap(); // Start of the year
+        let end_date = Utc.with_ymd_and_hms(year, 12, 31, 23, 59, 59).unwrap(); // End of the year
+
+        // Call the existing get_power_data function with the defined start and end dates
+        self.get_power_data(start_date, end_date)
     }
 
     /// Retrieves the power data for a specified range.
