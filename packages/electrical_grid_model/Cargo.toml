@@ -8,7 +8,7 @@ build = "build.rs"
 
 [dependencies]
 
-# Define un binario dummy
-[[bin]]
+# Define un lib dummy
+[lib]
 name = "electrical_grid_model"
-path = "src/main.rs"
+path = "src/lib.rs"

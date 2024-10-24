@@ -11,7 +11,7 @@ import os
 import torch
 
 BATCH_SIZE = 64
-DATA_FILE = os.path.join(os.getcwd(), './assets/LD2011_2014.csv')
+DATA_FILE = os.path.join(os.getcwd(), './assets/AUSTRIA_2015_2021.csv')
 
 def main():
     # Notify about the intention of this module

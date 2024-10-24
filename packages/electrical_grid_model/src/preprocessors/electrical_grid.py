@@ -3,9 +3,46 @@ from pandas import DataFrame, read_csv, to_datetime, to_numeric
 
 import numpy as np
 from pandas import DataFrame, to_datetime
+from sklearn.preprocessing import MinMaxScaler
+
+
+def normalize_by_year(df: DataFrame) -> DataFrame:
+    """Normalizes the GLOBAL_LOAD_TOTAL by year and returns a new DataFrame."""
+    # Extract the year from the TIMESTAMP for grouping
+    df['TIMESTAMP'] = to_datetime(df['START_TIME'])
+    df['year'] = df['TIMESTAMP'].dt.year
+
+    # Initialize the scaler
+    scaler = MinMaxScaler()
+
+    # Create a new DataFrame with the normalized values
+    normalized_df = df.copy()
+
+    # Group by year and normalize GLOBAL_LOAD_TOTAL
+    for year, group in df.groupby('year'):
+        # Normalize the values for each year
+        values = group['GLOBAL_LOAD_TOTAL'].values.reshape(-1, 1)
+        normalized_values = scaler.fit_transform(values)
+
+        # Replace the values in the original DataFrame
+        normalized_df.loc[df['year'] == year, 'GLOBAL_LOAD_TOTAL'] = normalized_values
+
+    # Convert the TIMESTAMP to an integer for easier processing
+    normalized_df['TIMESTAMP'] = df['TIMESTAMP'].astype(int)
+
+    # Drop the year column as it's no longer needed
+    normalized_df.drop(columns=['year', 'START_TIME'], inplace=True)
+
+    print("[*] Normalized GLOBAL_LOAD_TOTAL by year.")
+    print(normalized_df.tail())
+
+    return normalized_df
+
 
 def create_daily_sliding_windows(df: DataFrame, window_size: int) -> DataFrame:
     """Creates sliding windows grouped by day, including the timestamp, the next value, and the sinusoidal components."""
+
+    df = normalize_by_year(df)
 
     # Convert TIMESTAMP to datetime for easier grouping
     df['TIMESTAMP'] = to_datetime(df['TIMESTAMP'], unit='ns')
@@ -61,22 +98,8 @@ def electrical_grid_preprocessor(file: str) -> DataFrame:
     df = read_csv(file, on_bad_lines='skip', delimiter=";", low_memory=False)
 
     # As a note, the timestamp comes in the first column as a string, it needs to be converted to unix format
-    df['TIMESTAMP'] = to_datetime(df['TIMESTAMP'], format='%d/%m/%y %H:%M').astype(int)
-
-    # Remove rows that have values of 0 in all columns except the first one
-    df = df[(df.iloc[:, 1:] != 0).any(axis=1)]
-
-    # Remove columns that have values of 0 in all their rows
-    df = df.loc[:, (df != 0).any(axis=0)]
-
-    # Replace commas with periods in all columns from the first column onward
-    df.iloc[:, 1:] = df.iloc[:, 1:].replace(',', '.', regex=True)
-
-    # Convert the values in the columns to numeric (float), ignoring errors
-    df.iloc[:, 1:] = df.iloc[:, 1:].apply(to_numeric, errors='coerce')
-
-    # Calculate the median of each row (except the first column) and store it in a new column called global_load
-    df['GLOBAL_LOAD_TOTAL'] = df.iloc[:, 1:].sum(axis=1).div(1000)
+    df['START_TIME'] = to_datetime(df['START_TIME'], format='%d/%m/%y %H:%M').astype(int)
+    df['END_TIME'] = to_datetime(df['END_TIME'], format='%d/%m/%y %H:%M').astype(int)
 
     # Make sure there are no NaN values before converting to tensor
     df = df.dropna()
@@ -84,6 +107,6 @@ def electrical_grid_preprocessor(file: str) -> DataFrame:
     print("[*] Tail of the preprocessed dataset:")
     print(df.tail())
 
-    df = df[['TIMESTAMP', 'GLOBAL_LOAD_TOTAL']].copy()
+    df = df[['START_TIME', 'GLOBAL_LOAD_TOTAL']].copy()
 
     return df
