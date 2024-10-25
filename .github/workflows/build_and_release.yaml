@@ -36,7 +36,7 @@ jobs:
           zip -r release_artifacts.zip release_artifacts
 
       - name: Upload ZIP as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: rust-artifacts
           path: release_artifacts.zip
