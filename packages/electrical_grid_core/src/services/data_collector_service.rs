@@ -42,8 +42,8 @@ impl DataCollectorService {
 
     /// Creates the XML request body for the API call.
     fn create_request_body(start: DateTime<Utc>, end: DateTime<Utc>) -> String {
-        let start_str = &*start.to_rfc3339_opts(SecondsFormat::Secs, true);
-        let end_str = &*end.to_rfc3339_opts(SecondsFormat::Secs, true);
+        let start_str = start.to_rfc3339_opts(SecondsFormat::Secs, true);
+        let end_str = end.to_rfc3339_opts(SecondsFormat::Secs, true);
 
         format!(
             r#"
@@ -155,7 +155,7 @@ impl DataCollectorService {
             let response_text = response.text()?;
             Self::parse_response(&response_text)
         } else {
-            Err(format!("[!] Error fetching data: {}", response.status()).into())
+            Err(format!("Error fetching data: {}", response.status()).into())
         }
     }
 }
