@@ -5,9 +5,8 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "electrical_grid"
+name = "electrical_grid_cli"
 path = "src/main.rs"
 
 [dependencies]
 electrical_grid_core = { path = "../electrical_grid_core" }
-chrono = "0.4.38"
