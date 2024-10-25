@@ -31,7 +31,7 @@ jobs:
       - name: Create ZIP of artifacts
         run: |
           mkdir -p release_artifacts
-          cp target/release/assets release_artifacts/
+          cp -r target/release/assets release_artifacts/
           cp target/release/electrical_grid_cli release_artifacts/
           zip -r release_artifacts.zip release_artifacts
 
