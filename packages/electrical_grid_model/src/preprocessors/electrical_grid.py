@@ -3,8 +3,33 @@ from pandas import DataFrame, read_csv, to_datetime, to_numeric
 
 import numpy as np
 from pandas import DataFrame, to_datetime
+
+from sklearn.metrics import r2_score
 from sklearn.preprocessing import MinMaxScaler
 
+
+def calculate_r2_from_csv(file_path: str, forecast_col: str = 'LOAD_FORECAST', real_col: str = 'GLOBAL_LOAD_TOTAL') -> float:
+    """
+    Load a CSV file and calculate the R-squared score between two columns.
+
+    Args:
+        file_path (str): The path to the CSV file.
+        forecast_col (str): Name of the column for the forecasted load. By default is 'FORECAST_LOAD'.
+        real_col (str): Name of the column for the real load. By default is 'REAL_LOAD'.
+
+    Returns:
+        float: The R-squared score between the two columns.
+    """
+    # Load the CSV file
+    df = read_csv(file_path, on_bad_lines='skip', delimiter=";", low_memory=False)
+
+    # Ensure no NaN values in the columns
+    df = df[[forecast_col, real_col]].dropna()
+
+    # Calculate R-squared score
+    r2 = r2_score(df[real_col], df[forecast_col])
+
+    return r2
 
 def normalize_by_year(df: DataFrame) -> DataFrame:
     """Normalizes the GLOBAL_LOAD_TOTAL by year and returns a new DataFrame."""

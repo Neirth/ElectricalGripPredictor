@@ -40,9 +40,6 @@ def export_model(model, device, input_size, output_path):
     # Load the ONNX model for simplification
     model_onnx = onnx.load(output_path)
 
-    # Simplify the ONNX model
-    # model_simplified, check = simplify(model_onnx)
-
     # Save the simplified model
     onnx.save(model_onnx, output_path)
 
